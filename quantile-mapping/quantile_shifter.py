@@ -43,9 +43,7 @@ class QuantileShifter(object):
         
         quantile = max(0.0, min(self._source.Eval(value), 1.0))
         self._target.GetKnot(0, xdown, ydown)
-        bin_index = 0
         for index in range(npoints-1):
-            bin_index = index
             self._target.GetKnot(index, xdown, ydown)
             self._target.GetKnot(index+1, xup, yup)
             if quantile <= yup and yup != 0.0:
