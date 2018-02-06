@@ -11,9 +11,12 @@ The script `create_CDF_splines.py` calculates the CDF splines from a deliberate 
 The derivatives of the splines at the endpoints are set to zero as boundary conditions. If the considered distributions do not go to zero at the edges (e.g. due to applied cuts), this is suboptimal and should be adapted. Alternative boundary conditions can either concern the first or the second derivative (see options of TSpline3).
 
 ## Application
-This repository provides a standalone Python script `quantile_shifter.py` which can be used to apply corrections to plain ROOT trees. It appends a branch with the shifted values to the tree. The actual shifting procedure of a single value is performed by instances of the class `QuantileShifter` implemented in the same script. It can therefore be imported and used in more complex applications. Instanciating this class requires the path to the ROOT file containg CDF splines and the names of the intended source and target splines, which defines the correction performed by this instance.
+This repository provides a standalone Python script `apply_quantile_mapping.py` which can be used to apply corrections to plain ROOT trees. It appends a branch with the shifted values to the tree. The actual shifting procedure of a single value is performed by instances of the class `QuantileShifter` implemented in `QuantileShifter.py`. It can therefore be imported and used in more complex applications. Instanciating this class requires the path to the ROOT file containg CDF splines and the names of the intended source and target splines, which defines the correction performed by this instance.
 
-The `QuantileShifter` class is also available as c++ module in `quantile_shifter.h` and `quantile_shifter.cpp`.
+If this package is not embedded into a CMSSW setup, `<parent_path>/quantile_mapping` should be added to your PYTHONPATH.
+
+The `QuantileShifter` class is also available as c++ module in `quantile_shifter.h` and `quantile_shifter.cc`.
+In addition to the constructor asking for the CDFs, as used in the Python class, an additional function `init` with corresponding arguments and a default constructor are available, which enables to define the mapping independently from the declaration of the QuantileShifter instance.
 
 Events that are out of the range of the source splines are not shifted.
 
