@@ -1,0 +1,10 @@
+<Flags LDFLAGS="-rdynamic" />
+
+<use name="root" />
+
+
+<flags ADD_SUBDIR="1"/>
+
+<export>
+   <lib   name="1"/>
+</export>
