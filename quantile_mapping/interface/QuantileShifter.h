@@ -11,6 +11,7 @@ public:
     void init(std::string filename, std::string source_name, std::string target_name, bool use_bisect_flag);
 
     double shift(double value) const;
+    double shift(double value, double linear_interpolation_threshold) const;
     
 private:
     
@@ -20,4 +21,5 @@ private:
     bool use_bisect;
 
     double bisect(double quantile, double up, double down, int steps) const;
+    double FindY(double percentage, bool search_in_target) const;
 };
