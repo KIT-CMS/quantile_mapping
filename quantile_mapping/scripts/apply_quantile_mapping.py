@@ -74,6 +74,12 @@ def parse_arguments():
         "--bisect-method",
         action="store_true",
         help="Always use bisect method for the inversion of the target CDF spline")
+    parser.add_argument(
+        "-l",
+        "--linear-extrapolation-threshold",
+        type=float,
+        default=0.0,
+        help="Fraction of events in the lower and upper rim respectively for that linear interpolation is used instead of splines to approximate CDFs")
 
     return parser.parse_args()
 
@@ -84,7 +90,7 @@ def main(args):
     var = numpy.zeros(1, dtype=float)
     branch = tree.Branch(args.new_name, var, "%s/D"%args.new_name)
     for event in tree:
-        var[0] = shifter.shift(getattr(event, args.variable))
+        var[0] = shifter.shift(getattr(event, args.variable), args.linear_extrapolation_threshold)
         branch.Fill()
     tree.Write("", ROOT.TObject.kOverwrite)
     rootfile.Close()

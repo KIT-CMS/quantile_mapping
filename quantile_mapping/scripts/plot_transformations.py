@@ -55,6 +55,12 @@ def parse_arguments():
         type=float,
         default=None,
         help="upper boundary of x-range")
+    parser.add_argument(
+        "-l",
+        "--linear-extrapolation-threshold",
+        type=float,
+        default=0.0,
+        help="Fraction of events in the lower and upper rim respectively for that linear interpolation is used instead of splines to approximate CDFs")
 
     return parser.parse_args()
 
@@ -115,7 +121,7 @@ def main(args):
         y_vals = array('d')
         for i in range(101):
             x_vals.append(ROOT.Double(x_min + i * x_range / 100.))
-            y_vals.append(ROOT.Double(shifter.shift(x_vals[i])) - x_vals[i])
+            y_vals.append(ROOT.Double(shifter.shift(x_vals[i], args.linear_extrapolation_threshold)) - x_vals[i])
         graphs.append(ROOT.TGraph(101, x_vals, y_vals))
     
     # create histogram with event distribution
