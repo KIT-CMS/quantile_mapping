@@ -17,9 +17,13 @@ void QuantileShifter::init(std::string filename, std::string source_name, std::s
     initialized = true;
 }
 
-double QuantileShifter::shift(double value) const{
+double QuantileShifter::shift(double value, double linear_interpolation_threshold) const{
     if (!initialized){
         std::cout << "QuantileShifter was not initialized!" << std::endl;
+        throw std::exception();
+    }
+    if (linear_interpolation_threshold < 0.0){
+        std::cout << "Threshold for linear interpolation must be positive!" << std::endl;
         throw std::exception();
     }
     
@@ -37,6 +41,26 @@ double QuantileShifter::shift(double value) const{
     }
     
     double percentage = std::max(0.0, std::min(source.Eval(value), 1.0));
+    
+    if (percentage<linear_interpolation_threshold || percentage > 1.0 - linear_interpolation_threshold){
+        int bin = source.FindX(value);
+        if (bin >= npoints - 1){ //this can happen if an input exactly hits the upper boundary
+            npoints = target.GetNp();
+            target.GetKnot(npoints-1, xup, yup);
+            return xup;
+        }else{
+            source.GetKnot(bin, xdown, ydown);
+            source.GetKnot(bin + 1, xup, yup);
+            percentage = ydown + (value - xdown) * (yup - ydown) / (xup - xdown);
+            
+            bin = FindY(percentage, true);
+            target.GetKnot(bin, xdown, ydown);
+            target.GetKnot(bin + 1, xup, yup);
+            if (ydown == yup) return xdown;
+            return xdown + (percentage - ydown) / (yup - ydown) * (xup - xdown);
+        }
+    }
+    
     npoints = target.GetNp();
     target.GetKnot(0, xdown, ydown);
     for (int i=0; i < npoints-1; i++){
@@ -61,51 +85,6 @@ double QuantileShifter::shift(double value) const{
         return bisect(percentage, xup, xdown, steps);
     }
     return result;
-}
-
-double QuantileShifter::shift(double value, double linear_interpolation_threshold) const{
-    if (!initialized){
-        std::cout << "QuantileShifter was not initialized!" << std::endl;
-        throw std::exception();
-    }
-    if (linear_interpolation_threshold < 0.0){
-        std::cout << "Threshold for linear interpolation must be positive!" << std::endl;
-        throw std::exception();
-    }
-    
-    double xup;
-    double yup;
-    double xdown;
-    double ydown;
-    
-    int npoints = target.GetNp();
-    source.GetKnot(0, xdown, ydown);
-    source.GetKnot(npoints-1, xup, yup);
-    if (value < xdown || value > xup){
-        std::cout << "QuantileShifter - WARNING - Input value " << value << "out of range [" << xdown << ", " << xup << "]. No correction applied." << std::endl;
-        return value;
-    }
-    
-    double percentage = std::max(0.0, std::min(source.Eval(value), 1.0));
-    if (percentage<linear_interpolation_threshold || percentage > 1.0 - linear_interpolation_threshold){
-        int bin = source.FindX(value);
-        if (bin >= npoints - 1){ //this can happen if an input exactly hits the upper boundary
-            npoints = target.GetNp();
-            target.GetKnot(npoints-1, xup, yup);
-            return xup;
-        }else{
-            source.GetKnot(bin, xdown, ydown);
-            source.GetKnot(bin + 1, xup, yup);
-            percentage = ydown + (value - xdown) * (yup - ydown) / (xup - xdown);
-            
-            bin = FindY(percentage, true);
-            target.GetKnot(bin, xdown, ydown);
-            target.GetKnot(bin + 1, xup, yup);
-            if (ydown == yup) return xdown;
-            return xdown + (percentage - ydown) / (yup - ydown) * (xup - xdown);
-        }
-    }
-    else return shift(value);
 }
 
 double QuantileShifter::bisect(double percentage, double up, double down, int steps) const{

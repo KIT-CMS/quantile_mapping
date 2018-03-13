@@ -10,8 +10,7 @@ public:
     QuantileShifter(std::string filename, std::string source_name, std::string target_name, bool use_bisect_flag);
     void init(std::string filename, std::string source_name, std::string target_name, bool use_bisect_flag);
 
-    double shift(double value) const;
-    double shift(double value, double linear_interpolation_threshold) const;
+    double shift(double value, double linear_interpolation_threshold = 0.0) const;
     
 private:
     
