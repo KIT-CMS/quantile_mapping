@@ -35,6 +35,12 @@ def parse_arguments():
         default=None,
         help="Names of target CDF splines")
     parser.add_argument(
+        "--labels",
+        nargs="+",
+        type=str,
+        default=None,
+        help="Custom legend labels. Use '{default}' in your string, in case you want to include default label.")
+    parser.add_argument(
         "-o",
         "--output",
         type=str,
@@ -117,6 +123,9 @@ def main(args):
     if len(args.sources)!=len(args.targets):
         logger.FATAL("Number of sources and targets must be equal!")
         raise Exception
+    if args.labels!=None and len(args.labels)!=len(args.targets):
+        logger.FATAL("Number of legend labels must be equal to number of sources/targets!")
+        raise Exception
     if len(args.linear_interpolation_threshold)!=len(args.targets) and len(args.linear_interpolation_threshold)!=1:
         logger.FATAL("Number of -l arguments must be either 1 or equal to number of sources/targets!")
         raise Exception
@@ -174,7 +183,14 @@ def main(args):
     legend = ROOT.TLegend(0.15,0.7,0.95,0.9, '', 'NBNDC')
     legend.AddEntry(hist, "expected event distribution", "f")
     for i, graph in enumerate(graphs):
-        legend.AddEntry(graph, "%s#rightarrow %s"%(args.sources[i], args.targets[i]), "l")
+        defaultlabel = "%s#rightarrow %s"%(args.sources[i], args.targets[i])
+        if bmi[i] and lit[i]>0.0 and lit[i]<=0.5:
+            defaultlabel += " (#it{b, l = %3.1f})" %min(lit[i], 1.0)
+        elif lit[i]>0.0:
+            defaultlabel += " (#it{l=%3.1f})"%min(lit[i], 1.0)
+        elif bmi[i]:
+            defaultlabel += " (#it{b})"
+        legend.AddEntry(graph, defaultlabel if args.labels==None else args.labels[i].format(default=defaultlabel), "l")
     legend.Draw("same")
     canvas.SaveAs("%s.png"%args.output)
 
